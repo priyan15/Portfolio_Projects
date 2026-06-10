@@ -1,0 +1,27 @@
+{
+  "id": "two-sum",
+  "title": "Two Sum",
+  "area": "Arrays & Strings",
+  "difficulty": "Easy",
+  "function_name": "two_sum",
+  "statement": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`. Each input has exactly one solution, and you may not use the same element twice.",
+  "examples": [
+    {"input": "nums = [2, 7, 11, 15], target = 9", "output": "[0, 1]", "explanation": "nums[0] + nums[1] == 9"}
+  ],
+  "constraints": [
+    "2 <= len(nums) <= 10^4",
+    "Only one valid answer exists."
+  ],
+  "starter_code": "def two_sum(nums, target):\n    # Return a list of the two indices, e.g. [0, 1]\n    pass\n",
+  "sample_tests": [
+    {"input": [[2, 7, 11, 15], 9], "expected": [0, 1]},
+    {"input": [[3, 2, 4], 6], "expected": [1, 2]}
+  ],
+  "hidden_tests": [
+    {"input": [[3, 3], 6], "expected": [0, 1]},
+    {"input": [[1, 5, 8, 3, 9, 2], 11], "expected": [2, 3]},
+    {"input": [[-1, -2, -3, -4, -5], -8], "expected": [2, 4]}
+  ],
+  "reference_complexity": "O(n) time, O(n) space using a hash map.",
+  "leetcode_link": "https://leetcode.com/problems/two-sum/"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "valid-parentheses",
+  "title": "Valid Parentheses",
+  "area": "Arrays & Strings",
+  "difficulty": "Easy",
+  "function_name": "is_valid",
+  "statement": "Given a string `s` containing only the characters `()[]{}`, determine if the input string is valid. A string is valid if open brackets are closed by the same type of bracket and in the correct order.",
+  "examples": [
+    {"input": "s = \"()[]{}\"", "output": "true", "explanation": "All brackets are matched correctly."},
+    {"input": "s = \"(]\"", "output": "false", "explanation": "Mismatched bracket types."}
+  ],
+  "constraints": [
+    "1 <= len(s) <= 10^4",
+    "s consists only of the characters '()[]{}'."
+  ],
+  "starter_code": "def is_valid(s):\n    # Return True if the brackets are balanced, else False\n    pass\n",
+  "sample_tests": [
+    {"input": ["()[]{}"], "expected": true},
+    {"input": ["(]"], "expected": false}
+  ],
+  "hidden_tests": [
+    {"input": ["()"], "expected": true},
+    {"input": ["([{}])"], "expected": true},
+    {"input": ["([)]"], "expected": false},
+    {"input": ["("], "expected": false}
+  ],
+  "reference_complexity": "O(n) time, O(n) space using a stack.",
+  "leetcode_link": "https://leetcode.com/problems/valid-parentheses/"
+}

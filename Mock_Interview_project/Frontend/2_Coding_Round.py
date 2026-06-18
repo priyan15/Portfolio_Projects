@@ -5,6 +5,8 @@ on Piston, and get an (eventually LLM-powered) review.
 Reached from the sidebar, or after configuring a session on the Home page.
 """
 
+import json
+
 import streamlit as st
 
 from src.execution import run_tests
@@ -31,6 +33,9 @@ def code_editor(initial: str, key: str) -> str:
             keybinding="vscode",
             font_size=14,
             min_lines=18,
+            # Without this, st_ace only returns the latest text on blur, so a
+            # type-then-click-Run would run the previous (starter) code instead.
+            auto_update=True,
             key=key,
         )
     st.caption("Install `streamlit-ace` for a syntax-highlighted editor.")
@@ -55,9 +60,24 @@ def render_results(result: dict) -> None:
     for i, r in enumerate(result["results"], start=1):
         icon = "✅" if r["ok"] else "❌"
         with st.expander(f"{icon} Test {i}", expanded=not r["ok"]):
-            st.write("**Input:**", r["input"])
-            st.write("**Expected:**", r["expected"])
-            st.write("**Got:**", r["got"])
+            st.markdown("**Input:**")
+            st.code(_fmt(r["input"]), language="json")
+            st.markdown("**Expected:**")
+            st.code(_fmt(r["expected"]), language="json")
+            st.markdown("**Got:**")
+            st.code(_fmt(r["got"]), language="json")
+
+
+def _fmt(value) -> str:
+    """Render a test value as a clean one-line string.
+
+    Strings (e.g. an "ERROR: ..." message from the runner) are shown as-is;
+    everything else is JSON-encoded so lists render as [0, 1] rather than
+    Streamlit's indexed [0:0 1:1] view.
+    """
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, default=str)
 
 
 def main() -> None:

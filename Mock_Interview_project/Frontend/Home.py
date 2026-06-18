@@ -2,7 +2,7 @@
 Mock Interview — Homepage / Setup screen.
 
 This is the Streamlit entry point. Run it with:
-    cd /Users/priyankapawar/Desktop/Priyanka/Portfolio_Projects/Mock_Interview_project/Frontend/pages
+    cd /Users/priyankapawar/Desktop/Priyanka/Portfolio_Projects/Mock_Interview_project/Frontend/
     streamlit run Home.py
 
 It collects the user's interview configuration (category, area, difficulty,

@@ -1,25 +1,27 @@
 """
-Code execution via the public Piston API (https://github.com/engineer-man/piston).
+Code execution via a local Python subprocess.
 
-Piston runs untrusted code in a sandbox and returns stdout/stderr. It's free and
-needs no API key. We never exec user code locally — it always goes to Piston.
+The user's solution is wrapped in a self-contained driver script and run in a
+fresh interpreter (sys.executable -c ...). The child only talks to us through
+stdout: it prints one marker line of JSON results, which we parse back out.
+
+We run in a separate process (not exec() in-process) so a crash, sys.exit, or
+runaway loop in the user's code can't take down the app — the subprocess gets a
+hard wall-clock timeout instead.
 
 The flow:
   1. build_harness() wraps the user's function with a test-runner driver.
-  2. run_tests() ships that to Piston and parses a single marker line of JSON
+  2. run_tests() runs that script and parses a single marker line of JSON
      results back out of stdout.
 """
 
 import base64
 import json
+import subprocess
+import sys
 
-import requests
-
-PISTON_URL = "https://emkc.org/api/v2/piston/execute"
-PISTON_LANGUAGE = "python"
-PISTON_VERSION = "3.10.0"   # widely available on the public Piston instance
 RESULT_MARKER = "__RESULTS__"
-REQUEST_TIMEOUT = 20        # seconds for the HTTP call itself
+RUN_TIMEOUT = 10            # seconds of wall-clock before we kill the child
 
 
 def build_harness(user_code: str, function_name: str, tests: list) -> str:
@@ -56,7 +58,7 @@ print("{RESULT_MARKER}" + json.dumps(__out, default=str))
 
 
 def run_tests(user_code: str, function_name: str, tests: list) -> dict:
-    """Execute user_code against tests on Piston.
+    """Execute user_code against tests in a local subprocess.
 
     Returns a dict:
       {
@@ -68,22 +70,24 @@ def run_tests(user_code: str, function_name: str, tests: list) -> dict:
       }
     """
     script = build_harness(user_code, function_name, tests)
-    payload = {
-        "language": PISTON_LANGUAGE,
-        "version": PISTON_VERSION,
-        "files": [{"name": "main.py", "content": script}],
-        "run_timeout": 5000,
-    }
 
     try:
-        resp = requests.post(PISTON_URL, json=payload, timeout=REQUEST_TIMEOUT)
-        resp.raise_for_status()
-        run = resp.json().get("run", {})
-    except requests.RequestException as exc:
-        return _fail(f"Could not reach the code runner: {exc}", total=len(tests))
+        proc = subprocess.run(
+            [sys.executable, "-I", "-c", script],
+            capture_output=True,
+            text=True,
+            timeout=RUN_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        return _fail(
+            f"Your code timed out after {RUN_TIMEOUT}s (possible infinite loop).",
+            total=len(tests),
+        )
+    except OSError as exc:
+        return _fail(f"Could not start the code runner: {exc}", total=len(tests))
 
-    stdout = run.get("stdout", "") or ""
-    stderr = run.get("stderr", "") or ""
+    stdout = proc.stdout or ""
+    stderr = proc.stderr or ""
 
     marker_line = next(
         (ln for ln in stdout.splitlines() if ln.startswith(RESULT_MARKER)), None
